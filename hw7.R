@@ -28,7 +28,7 @@ train=sample(1:nrow(Boston),300)
 # dataset are created to privde the probability of each obersevation falling into
 # category. Whereas, randomforest data set is a randomlly selected subset.
 
-#Uses the Boston dataframe
+#Uses the Boston dataframe to create a random forest
 #uses a set of index vector with the train dataset
 #medv~. - medv is the dependent variable and the "~."
 # referrres to "all other varaibles" as the indepedent varaibles
@@ -37,6 +37,8 @@ Boston.rf=randomForest::randomForest(medv ~ . , data = Boston ,
 #print Boston.rf on console
 Boston.rf
 #plot Boton.rf
+#In this plot, we have the x axis with the number of trees created and the y axis with the error
+#When looking at the graph, as the number of trees increase, then the number of error decreases.
 plot(Boston.rf)
 #This is making possible 13 Out of Bag Sample Errors found at each split
 oob.err=double(13)
@@ -47,17 +49,18 @@ test.err=double(13)
 for(mtry in 1:13){
   #rf contains the returned values of the expoeted variable randomForest
   # in the function of randomForest. The dataset used is Boston. The subset
-  # is train. This will indicate while rows will be sued.The number of
+  # is train. This will indicate which rows will be used.The number of
   # trees to grow is 400.
   rf=randomForest::randomForest(medv ~ . ,
                                 data = Boston ,
                                 subset = train,
                                 mtry=mtry,
                                 ntree=400)
-  #puts dataset into the out of bounds error
+  #out of bounds error holds 400 mean standard error from the random forest
   oob.err[mtry] = rf$mse[400]
   
-  #storing the prediction
+  #stores a prediction of the remaining set of values in Boston that were not in the
+  #training set and adding it into the random forest. This set is stored into pred.
   pred<-predict(rf,Boston[-train,]) 
   
   #error test data set
@@ -69,9 +72,9 @@ for(mtry in 1:13){
 
 #Why is there a for loop?
 #Ans:
-#The for loop is used to create 13 preditions
+#The for loop is used to crate 13 predicted trees and different mtry values.
 
-#test error
+#prints test error
 test.err
 
 #print Out of Bound error
@@ -84,9 +87,12 @@ oob.err # what is OOB stand for and what does it have to do with Randome Forests
 #used as training data
 
 #Plotting both Test Error and Bag Error
+#The red line is the Out of Bag Error estimates and the blue line is the 
+#Error calucated on the test set. When looking a the the lines, we can see that
+#the error minimizes after the fourth split. 
 matplot(1:mtry, cbind(oob.err,test.err), pch=19 , col=c("red","blue"),type="b",ylab="Mean Squared Error",xlab="Number of Predictors Considered at each Split")
 #what is a split?
-#Ans:the split is
+#Ans:a split in a part of a decision tree within the random forest
 legend("topright",legend=c("Out of Bag (Validation Set) Error","Test (Training Set) Error"),pch=19, col=c("red","blue"))
 
 
@@ -99,11 +105,23 @@ legend("topright",legend=c("Out of Bag (Validation Set) Error","Test (Training S
 # and categorical responses
 #Regression of a random feorest predicts the mean or average of the individual
 #trees returned which is what was plotted above.
-#
+#The regression is calculated 
 
+#This uses the out of bag data
+#The impotance method permutes the OOB data from the Boston random forest to record it's prediction error
+#The same will be done to a predictor variable
+#the difference between those are averaged.
+#that data is then kept in ImpData
 ImpData <- as.data.frame(importance(Boston.rf))
+#Stores the Varaible names into ImpData
 ImpData$Var.Names <- row.names(ImpData)
 
+#This graphs the different varialbes in the ImpData to its node purity
+#Node purity is a metric that calculates the split of a tree.
+#This is essencially a way to measure the importance of each variable
+#When looking at the graph, the variables rm and lstat shows high purity,
+#this means that if you were to pick a point, it would most likely belong to
+#the variables with the highest purity.
 ggplot(ImpData, aes(x=Var.Names, y=`IncNodePurity`)) +
   geom_segment( aes(x=Var.Names, xend=Var.Names, y=0, yend=`IncNodePurity`), color="skyblue") +
   geom_point(aes(size = IncNodePurity), color="blue", alpha=0.6) +
