@@ -105,7 +105,7 @@ legend("topright",legend=c("Out of Bag (Validation Set) Error","Test (Training S
 # and categorical responses
 #Regression of a random feorest predicts the mean or average of the individual
 #trees returned which is what was plotted above.
-#The regression is calculated 
+#The regression is calculated by finding the average distance the each data point to the line of best fit. 
 
 #This uses the out of bag data
 #The impotance method permutes the OOB data from the Boston random forest to record it's prediction error
